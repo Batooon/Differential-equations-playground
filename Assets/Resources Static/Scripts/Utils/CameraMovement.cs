@@ -8,19 +8,22 @@ namespace Utils
         event Action<Vector3> CenterChanged;
     }
 
+    public static class Axes
+    {
+        public const int LeftMouseButton = 0;
+        public const string VerticalRotation = "Mouse Y";
+        public const string HorizontalRotation = "Mouse X";
+        public const string ScrollWheel = "Mouse ScrollWheel";
+    }
+
     public class CameraMovement : MonoBehaviour
     {
-        private const int LeftMouseButton = 0;
-        private const string VerticalRotation = "Mouse Y";
-        private const string HorizontalRotation = "Mouse X";
-        private const string ScrollWheel = "Mouse ScrollWheel";
-
         [SerializeField] private Camera _seizedCamera;
         [SerializeField] private Transform _furnitureCenterPoint;
         [SerializeField] private float _zoomSpeed;
+        [SerializeField] private float _rotationSpeed;
         [SerializeField, Range(.1f, 4f)] private float _min3DZoom;
         [SerializeField, Range(5f, 90f)] private float _max3DZoom;
-        [SerializeField] private float _rotationSpeed;
         [SerializeField] private float _zoomAmount = 1f;
 
         private ICenterChange _centerChanger;
@@ -33,12 +36,13 @@ namespace Utils
 
         private Vector3 _rotateStartPosition;
         private Vector3 _rotateCurrentPosition;
-        private Quaternion _newRotation;
     
         private Vector3 _2dMouseStartPosition;
         private Vector3 _2dMouseCurrentPosition;
     
         private Vector3 _new3DZoom;
+
+        private Quaternion _newRotation;
     
         private bool _moving;
         private bool _changingState;
@@ -61,7 +65,6 @@ namespace Utils
             };
             _cameraFollow = cameraFollowObject.transform;
             _transform.position = _cameraFollow.position;
-            ResetTransform();
             _new3DZoom = _seizedCamera.transform.localPosition;
         }
 
@@ -75,16 +78,9 @@ namespace Utils
             _centerChanger.CenterChanged -= OnCenterChanged;
         }
 
-        private void ResetTransform()
-        {
-            _newRotation = _transform.rotation;
-        }
-
         private void Update()
         {
             HandleZoom();
-
-            HandleRotation();
         }
 
         private Vector3 GetNewZoom(float zoom)
@@ -97,7 +93,7 @@ namespace Utils
 
         private void HandleZoom()
         {
-            var scroll = Input.GetAxis(ScrollWheel);
+            var scroll = Input.GetAxis(Axes.ScrollWheel);
             if (scroll != 0)
             {
                 var lookAtVector = -_seizedCamera.transform.localPosition;
@@ -120,17 +116,19 @@ namespace Utils
             _seizedCamera.transform.localPosition = Vector3.Lerp(_seizedCamera.transform.localPosition, _new3DZoom,
                 _zoomSpeed * Time.deltaTime);
         }
-
+        
         private void HandleRotation()
         {
-            if (Input.GetMouseButton(LeftMouseButton))
+            if (Input.GetMouseButton(Axes.LeftMouseButton))
             {
-                _xRotation -= Input.GetAxis(VerticalRotation) * _rotationSpeed;
-                _yRotation -= Input.GetAxis(HorizontalRotation) * _rotationSpeed;
+                _xRotation = Input.GetAxis(Axes.HorizontalRotation) * _rotationSpeed;
+                _yRotation = Input.GetAxis(Axes.VerticalRotation) * _rotationSpeed;
 
-                var rotation = Quaternion.Euler(_xRotation, _yRotation, 0);
-                _newRotation = rotation;
-                _transform.rotation = _newRotation;
+                // var rotation = Quaternion.Euler(_xRotation, _yRotation, 0);
+                // _newRotation = rotation;
+                // _transform.rotation = _newRotation;
+
+                _transform.Rotate(_xRotation, _yRotation, 0, Space.World);
             }
         }
 
