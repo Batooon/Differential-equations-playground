@@ -5,12 +5,12 @@ namespace Utils
 {
     public class Entry : MonoBehaviour
     {
-        [SerializeField] private LorenzAttractor _attractor;
+        [SerializeField] private PhasePortrait _portrait;
         [SerializeField] private CameraMovement _cameraMovement;
 
         private void Awake()
         {
-            _cameraMovement.Init(_attractor);
+            _cameraMovement.Init(_portrait);
         }
     }
 }
